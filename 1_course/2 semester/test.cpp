@@ -31,93 +31,152 @@
   записанных данных.
 
 *******************************************************************************/
+#include <algorithm> // for a sorting way
+#include <fstream>   // for work with files
 #include <iostream>
 #include <stdlib.h> // srand(), rand()
-#include <time.h>   // time()
+#include <string>
+#include <time.h> // time()
 
 using namespace std;
 
-// 1_1 заполненный случайным образом числами
-// из заданного пользователем промежутка.
-int getRandomValue(int min, int max)
-{
-  srand(time(NULL));
-  return min + rand() % (max - min + 1);
+void logElement(int item) { cout << item << " "; }
+
+void logArrayNameAndCount(string arrayMark, int count) {
+  cout << endl << "[" << arrayMark << "] Count of the array: " << count << endl;
+}
+
+void fillArray(int arr[], int n, int startRange, int endRange) {
+  for (int i = 0; i < n; i++) {
+    arr[i] = startRange + rand() % (endRange - startRange + 1);
+    logElement(arr[i]);
+  }
+  logArrayNameAndCount("Initial array", n);
 }
 
 // 1_2 Удалить из него все элементы, в которых последняя
 //     цифра четная, а само число делится на нее.
-int *removeEvenNumbersFromArray(int *array, int arraySize)
-{
-  int updateArraySize = arraySize;
+void transformArray(int array[], int n, int newArray[]) {
+  int zeroValueCount = 0;
+  for (int i = 0; i < n; i++) {
+    int lastDigit = array[i] % 10;
 
-  // cycle for replacing "even" numbers with "0"
-  for (int j = 0; j < arraySize; j++)
-  {
-    int lastDigit = array[j] % 10;
-
-    if (lastDigit % 2 == 0 && array[j] % lastDigit == 0)
-    {
-      array[j] = 0;
-      updateArraySize--;
+    if (lastDigit % 2 != 0 || array[i] % lastDigit != 0) {
+      newArray[zeroValueCount] = array[i];
+      zeroValueCount++;
     }
   }
-
-  int updateArray[updateArraySize], i = 0;
-  // for transfering non-zero values to other array
-  for (int j = 0; j < arraySize; j++)
-  {
-    if (array[j] != 0)
-    {
-      updateArray[i] = array[j];
-      i++;
-    }
-  }
-
-  return updateArray;
 }
 
-void firstTask()
-{
-  int n, intervalStart, intervalEnd;
+int *sortArrayByLibrary(int array[], int length) {
+  int *result = new int[length];
 
-  while (true)
-  {
-    cout << "Input start of the interval: ";
-    cin >> intervalStart;
+  copy(array, array + length, result);
+  sort(result, result + length);
 
-    cout << "Input end of the interval: ";
-    cin >> intervalEnd;
+  for (int i = 0; i < length; i++) {
+    logElement(result[i]);
+  }
+  logArrayNameAndCount("Sorted array", length);
+  return result;
+}
 
-    if (intervalStart >= intervalEnd)
-    {
-      cout << "You might write same values or you mixed up start and end of interval." << endl
+int *sortArrayByBubble(int array[], int length) {
+  int *result = new int[length];
+
+  for (int i = 0; i < length; i++) {
+    result[i] = array[i];
+  }
+
+  for (int i = 0; i < length - 1; i++) {
+    for (int m = 0; m < length - 1; m++) {
+      if (result[m] > result[m + 1]) {
+        int tempNumb = result[m];
+        result[m] = result[m + 1];
+        result[m + 1] = tempNumb;
+      }
+    }
+  }
+  for (int i = 0; i < length; i++) {
+    logElement(result[i]);
+  }
+  logArrayNameAndCount("Sorted array", length);
+
+  return result;
+}
+
+void firstTask() {
+  int n, startRange, endRange;
+
+  // check valid range values and input again, when these aren't corrected
+  while (true) {
+    cout << "Input the range of the numbers (startRange and endRange): ";
+    cin >> startRange >> endRange;
+
+    if (startRange >= endRange) {
+      cout << "You might write same values or you mixed up start and end of "
+              "the range."
+           << endl
            << "Repeat again!" << endl;
       continue;
     }
     break;
   }
 
-  cout << "Input array count: ";
+  cout << "Input the count of a array: ";
   cin >> n;
 
   int numberArray[n];
 
-  for (int i = 0; i < n; i++)
-  {
-    numberArray[i] = getRandomValue(intervalStart, intervalEnd);
-    cout << i + 1 << ") " << numberArray[i] << endl;
+  // 1_1 заполненный случайным образом числами
+  // из заданного пользователем промежутка.
+  fillArray(numberArray, n, startRange, endRange);
+
+  // find out a count of zero values
+  int zeroValueCount = 0;
+  for (int i = 0; i < n; i++) {
+    int lastDigit = numberArray[i] % 10;
+
+    if (lastDigit != 0 && lastDigit % 2 == 0 &&
+        numberArray[i] % lastDigit == 0) {
+      numberArray[i] = 0;
+      zeroValueCount++;
+    }
   }
 
-  int *updateArray = removeEvenNumbersFromArray(numberArray, n);
-  for (int i = 0; i < n; i++)
-  {
-    cout << i + 1 << ") " << updateArray[i] << endl;
+  // create update array
+  int updateArray[n - zeroValueCount], k = 0;
+  cout << endl << "--------------------------" << endl;
+  // cycle for moving non-zero values to the update array
+  for (int i = 0; i < n; i++) {
+    if (numberArray[i] != 0) {
+      updateArray[k] = numberArray[i];
+      logElement(updateArray[k]);
+      k++;
+    }
   }
+  logArrayNameAndCount("Filtered array", k);
+
+  cout << endl << "--------------------------" << endl;
+
+  int *sortedArray = sortArrayByBubble(updateArray, k);
+
+  ofstream outFile("output.txt");
+
+  if (outFile.is_open()) {
+    for (int i = 0; i < k; i++) {
+      outFile << sortedArray[i] << " ";
+    }
+    outFile.close();
+  } else {
+    cout << "Unable to open file";
+  }
+
+  delete[] sortedArray;
 }
 
-int main()
-{
+int main() {
+  srand(time(NULL));
   firstTask();
   //   secondTask();
   //   thirdTask();
