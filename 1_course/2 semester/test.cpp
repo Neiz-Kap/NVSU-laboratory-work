@@ -21,7 +21,7 @@
 
 /******************************************************************************
 
-  №3 Создать массив, элементами которого являются структуры –
+  №3 Создать массив, элементами которого являются структуры –1
   список учеников. В записи должны содержаться имя, фамилия
   ученика, год рождения, класс. Вывести на экран
   отсортированный список по фамилии ученика.
@@ -32,7 +32,8 @@
 
 *******************************************************************************/
 #include <algorithm> // for a sorting way
-#include <fstream>   // for work with files
+#include <cmath>
+#include <fstream> // for work with files
 #include <iostream>
 #include <stdlib.h> // srand(), rand()
 #include <string>
@@ -40,18 +41,72 @@
 
 using namespace std;
 
-void logElement(int item) { cout << item << " "; }
+void printArrayToTerminal(int *array, int length, string mark) {
+  cout << endl << mark << endl;
+  for (int i = 0; i < length; i++) {
+    cout << array[i] << " ";
+  }
+  cout << endl << "--------------------------" << endl;
+}
 
-void logArrayNameAndCount(string arrayMark, int count) {
-  cout << endl << "[" << arrayMark << "] Count of the array: " << count << endl;
+void printArrayToFile(int *array, int length, string mark, string fileName) {
+  ofstream out(fileName);
+
+  out << mark << endl;
+  if (out.is_open()) {
+    for (int i = 0; i < length; i++) {
+      out << array[i] << " ";
+    }
+    out.close();
+  } else {
+    cout << "Unable to open file";
+  }
+}
+
+// функция для вывода одномерного массива на экран и в файл
+void printArray(int *array, int length, string mark, string fileName) {
+  printArrayToTerminal(array, length, mark);
+  printArrayToFile(array, length, mark, fileName);
+}
+
+void inputValidRange(int &startRange, int &endRange) {
+  while (true) {
+    cout << "Input the range of the numbers (startRange and endRange): ";
+    cin >> startRange >> endRange;
+
+    if (startRange >= endRange) {
+      cout << "You might write same values or you mixed up start and end of "
+              "the range."
+           << endl
+           << "Repeat again!" << endl;
+      continue;
+    }
+    break;
+  }
+}
+
+void inputRange(int &startRange, int &endRange) {
+  int n1, n2;
+  cout << "Input the range of the numbers: ";
+  cin >> n1 >> n2;
+
+  if (n2 <= n1) {
+    startRange = n2;
+    endRange = n1;
+  } else {
+    startRange = n1;
+    endRange = n2;
+  }
+}
+
+int generateRandomNumber(int startRange, int endRange) {
+  int randomValue = startRange + rand() % (endRange - startRange + 1);
+  return randomValue;
 }
 
 void fillArray(int arr[], int n, int startRange, int endRange) {
-  for (int i = 0; i < n; i++) {
-    arr[i] = startRange + rand() % (endRange - startRange + 1);
-    logElement(arr[i]);
-  }
-  logArrayNameAndCount("Initial array", n);
+  for (int i = 0; i < n; i++)
+    arr[i] = generateRandomNumber(startRange, endRange);
 }
 
 // 1_2 Удалить из него все элементы, в которых последняя
@@ -75,9 +130,7 @@ int *sortArrayByLibrary(int array[], int length) {
   sort(result, result + length);
 
   for (int i = 0; i < length; i++) {
-    logElement(result[i]);
   }
-  logArrayNameAndCount("Sorted array", length);
   return result;
 }
 
@@ -98,32 +151,20 @@ int *sortArrayByBubble(int array[], int length) {
     }
   }
   for (int i = 0; i < length; i++) {
-    logElement(result[i]);
   }
-  logArrayNameAndCount("Sorted array", length);
 
   return result;
 }
+
+// ________________first task____________________
 
 void firstTask() {
   int n, startRange, endRange;
 
   // check valid range values and input again, when these aren't corrected
-  while (true) {
-    cout << "Input the range of the numbers (startRange and endRange): ";
-    cin >> startRange >> endRange;
+  inputValidRange(startRange, endRange);
 
-    if (startRange >= endRange) {
-      cout << "You might write same values or you mixed up start and end of "
-              "the range."
-           << endl
-           << "Repeat again!" << endl;
-      continue;
-    }
-    break;
-  }
-
-  cout << "Input the count of a array: ";
+  cout << "Input the count of an array: ";
   cin >> n;
 
   int numberArray[n];
@@ -131,6 +172,7 @@ void firstTask() {
   // 1_1 заполненный случайным образом числами
   // из заданного пользователем промежутка.
   fillArray(numberArray, n, startRange, endRange);
+  printArrayToTerminal(numberArray, n, "[Initail array]");
 
   // find out a count of zero values
   int zeroValueCount = 0;
@@ -145,34 +187,85 @@ void firstTask() {
   }
 
   // create update array
-  int updateArray[n - zeroValueCount], k = 0;
-  cout << endl << "--------------------------" << endl;
+  int filteredArray[n - zeroValueCount], k = 0;
+
   // cycle for moving non-zero values to the update array
   for (int i = 0; i < n; i++) {
     if (numberArray[i] != 0) {
-      updateArray[k] = numberArray[i];
-      logElement(updateArray[k]);
+      filteredArray[k] = numberArray[i];
       k++;
     }
   }
-  logArrayNameAndCount("Filtered array", k);
+  printArrayToTerminal(filteredArray, k, "[Filtered array]");
 
-  cout << endl << "--------------------------" << endl;
-
-  int *sortedArray = sortArrayByBubble(updateArray, k);
-
-  ofstream outFile("output.txt");
-
-  if (outFile.is_open()) {
-    for (int i = 0; i < k; i++) {
-      outFile << sortedArray[i] << " ";
-    }
-    outFile.close();
-  } else {
-    cout << "Unable to open file";
-  }
+  int *sortedArray = sortArrayByBubble(filteredArray, k);
+  printArray(sortedArray, k, "[Sorted array]", "result.txt");
 
   delete[] sortedArray;
+}
+
+// ________________second task____________________
+
+void fillMatrix(int **matrix, int rowCount, int colCount, int startRange,
+                int endRange) {
+  for (int x = 0; x < rowCount; x++) {
+    for (int y = 0; y < colCount; y++) {
+      matrix[x][y] = generateRandomNumber(startRange, endRange);
+    }
+  }
+}
+
+void swapRows(int **matrix, int rowCount, int colCount) {
+  for (int x = 0; x < rowCount / 2; x++) {
+    for (int y = 0; y < colCount; y++) {
+      int temp = matrix[x][y];
+      matrix[x][y] = matrix[rowCount - x - 1][y];
+      matrix[rowCount - x - 1][y] = temp;
+    }
+  }
+}
+
+// функция для вывода двумерного массива на экран и в файл
+void printMatrix(int **matrix, int rowCount, int colCount, string fileName,
+                 string mark) {
+  ofstream out(fileName);
+  cout << mark << endl;
+  out << mark << endl;
+  for (int x = 0; x < rowCount; x++) {
+    for (int y = 0; y < colCount; y++) {
+      cout << matrix[x][y] << " ";
+      out << matrix[x][y] << " ";
+    }
+    cout << endl;
+    out << endl;
+  }
+  cout << endl;
+  out << endl;
+  out.close();
+}
+
+void secondTask() {
+  int startRange, endRange;
+  // check valid range values and input again, when these aren't corrected
+  inputRange(startRange, endRange);
+
+  int rowCount, colCount;
+  cout << "Input the count of the row and column: ";
+  cin >> rowCount >> colCount;
+
+  int **matrix = new int *[rowCount];
+  for (int i = 0; i < rowCount; ++i)
+    matrix[i] = new int[colCount];
+
+  fillMatrix(matrix, rowCount, colCount, startRange, endRange);
+  printMatrix(matrix, rowCount, colCount, "init.txt", "[Initial matrix]:");
+
+  swapRows(matrix, rowCount, colCount);
+  printMatrix(matrix, rowCount, colCount, "result.txt", "[Swapped matrix]:");
+
+  for (int i = 0; i < rowCount; ++i)
+    delete[] matrix[i];
+  delete[] matrix;
 }
 
 int main() {
