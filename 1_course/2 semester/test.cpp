@@ -373,8 +373,36 @@ void thirdTask() {
 
 int main() {
   srand(time(NULL));
-  // firstTask();
-  //   secondTask();
-  thirdTask();
+  int a;
+  do {
+    printf("Input: \n");
+    printf("1 and Enter - output the first task\n");
+    printf("2 and Enter - output the second task\n");
+    printf("3 and Enter - output the third task\n");
+    printf("0 and Enter - for exit from a subprogram\n");
+
+    scanf("%d", &a);
+
+    switch (a) {
+    case 0:
+      break;
+
+    case 1:
+      firstTask();
+      break;
+    case 2:
+      secondTask();
+      break;
+    case 3:
+      thirdTask();
+      break;
+
+    default:
+      cout << "Your input is invalid. \n Try entering a number from 0 to 3"
+           << endl;
+      break;
+    }
+
+  } while (a != 0);
   return 0;
 }
