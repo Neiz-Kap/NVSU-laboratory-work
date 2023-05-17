@@ -8,36 +8,15 @@
     получившийся массив и вывести его на экран и в файл.
 *******************************************************************************/
 
-/******************************************************************************
-
-    №2 Дан двумерный массив размером n*m, заполненный
-  случайными числами из заданного пользователем промежутка.
-  Поменять в нем порядок строк: последнюю сделать первой,
-  предпоследнюю – второй и т.д., вторую – предпоследней,
-  первую сделать последней. Вывести получившийся массив на
-  экран и в файл.
-
-*******************************************************************************/
-
-/******************************************************************************
-
-  №3 Создать массив, элементами которого являются структуры –1
-  список учеников. В записи должны содержаться имя, фамилия
-  ученика, год рождения, класс. Вывести на экран
-  отсортированный список по фамилии ученика.
-  Запрограммировать возможность вывода всех учеников,
-  фамилия которых начинается с буквы, введенной
-  пользователем, запись данных в файл и чтение из файла уже
-  записанных данных.
-
-*******************************************************************************/
 #include <algorithm> // for a sorting way
 #include <cmath>
 #include <fstream> // for work with files
 #include <iostream>
+#include <sstream>
 #include <stdlib.h> // srand(), rand()
 #include <string>
 #include <time.h> // time()
+#include <vector>
 
 using namespace std;
 
@@ -204,7 +183,16 @@ void firstTask() {
   delete[] sortedArray;
 }
 
-// ________________second task____________________
+/******************************************************************************
+
+    №2 Дан двумерный массив размером n*m, заполненный
+  случайными числами из заданного пользователем промежутка.
+  Поменять в нем порядок строк: последнюю сделать первой,
+  предпоследнюю – второй и т.д., вторую – предпоследней,
+  первую сделать последней. Вывести получившийся массив на
+  экран и в файл.
+
+*******************************************************************************/
 
 void fillMatrix(int **matrix, int rowCount, int colCount, int startRange,
                 int endRange) {
@@ -268,10 +256,125 @@ void secondTask() {
   delete[] matrix;
 }
 
+/******************************************************************************
+
+  №3 Создать массив, элементами которого являются структуры –
+  список учеников. В записи должны содержаться имя, фамилия
+  ученика, год рождения, класс. Вывести на экран
+  отсортированный список по фамилии ученика.
+  Запрограммировать возможность вывода всех учеников,
+  фамилия которых начинается с буквы, введенной
+  пользователем, запись данных в файл и чтение из файла уже
+  записанных данных.
+
+*******************************************************************************/
+struct Student {
+  string firstName;
+  string lastName;
+  int birthYear;
+  int grade;
+};
+
+// Функция для сравнения учеников по фамилии
+bool sortByLastName(const Student &s1, const Student &s2) {
+  return s1.lastName < s2.lastName;
+}
+
+void thirdTask() {
+  vector<Student> students;
+
+  // Заполнение массива структур данными учеников
+  students.push_back({"Ivan", "Mekhedov", 2002, 5});
+  students.push_back({"Danil", "Ryabushkin", 2004, 1});
+  students.push_back({"Maxim", "Kostinov", 2004, 1});
+  students.push_back({"Gleb", "Ahtyamov", 2004, 1});
+  students.push_back({"Andrey", "Titarenko", 2003, 4});
+  students.push_back({"Alex", "Nevecherya", 2001, 4});
+  students.push_back({"Nikita", "Mamedov", 2004, 1});
+
+  cout << "[INFO] Initial array of students:" << endl;
+  for (const auto &student : students) {
+    cout << student.lastName << ", " << student.firstName << " (Grade "
+         << student.grade << ")" << endl;
+  }
+  cout << endl;
+
+  // Сортировка списка учеников по фамилии
+  sort(students.begin(), students.end(), sortByLastName);
+
+  // Вывод отсортированного списка учеников
+  cout << "[INFO] Sorted Students List:" << endl;
+  for (const auto &student : students) {
+    cout << student.lastName << ", " << student.firstName << " (Grade "
+         << student.grade << ")" << endl;
+  }
+  cout << endl;
+
+  // Ввод буквы для фильтрации учеников
+  char letter;
+  cout << "Enter a letter to filter students by last name: ";
+  cin >> letter;
+
+  // Вывод учеников, фамилия которых начинается с заданной буквы
+  int count = 0;
+  cout << "[INFO] Students with last name starting with letter '" << letter
+       << "':" << endl;
+  for (const auto &student : students) {
+    if (student.lastName[0] == letter) {
+      cout << student.lastName << ", " << student.firstName << " (Grade "
+           << student.grade << ")" << endl;
+      count++;
+    }
+  }
+  if (count == 0)
+    cout << "No found student(s) with current letter in the last name" << endl;
+  cout << endl;
+
+  // Запись данных учеников в файл
+  ofstream outFile("students.txt");
+  if (outFile.is_open()) {
+    for (const auto &student : students) {
+      outFile << student.firstName << " " << student.lastName << " "
+              << student.birthYear << " " << student.grade << "\n";
+    }
+    outFile.close();
+    cout << "[SUCCESS] Data has been written to students.txt" << endl << endl;
+  } else {
+    cout << "[ERROR] Failed to open file for writing!" << endl;
+  }
+
+  // Чтение данных учеников из файла
+  vector<Student> studentsFromFile;
+  ifstream inFile("students.txt");
+  if (inFile.is_open()) {
+    string line;
+    while (getline(inFile, line)) {
+      istringstream iss(line);
+      string firstName, lastName;
+      int birthYear, grade;
+      if (iss >> firstName >> lastName >> birthYear >> grade) {
+        studentsFromFile.push_back({firstName, lastName, birthYear, grade});
+      } else {
+        cout << "[ERROR] Failed to parse line: " << line << endl;
+      }
+    }
+    inFile.close();
+
+    // Вывод учеников из файла
+    cout << "[INFO] Students read from file:" << endl;
+    for (const auto &student : studentsFromFile) {
+      cout << student.lastName << ", " << student.firstName << " (Grade "
+           << student.grade << ")" << endl;
+    }
+  } else {
+    cout << "[ERROR] Failed to open file for reading!" << endl;
+  }
+}
+
 int main() {
   srand(time(NULL));
-  firstTask();
+  // firstTask();
   //   secondTask();
-  //   thirdTask();
+  thirdTask();
   return 0;
 }
