@@ -151,7 +151,7 @@ void firstTask() {
   // 1_1 заполненный случайным образом числами
   // из заданного пользователем промежутка.
   fillArray(numberArray, n, startRange, endRange);
-  printArrayToTerminal(numberArray, n, "[Initail array]");
+  printArrayToTerminal(numberArray, n, "[Initial array]");
 
   // find out a count of zero values
   int zeroValueCount = 0;
